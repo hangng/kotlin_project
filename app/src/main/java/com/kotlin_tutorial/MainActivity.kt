@@ -3,6 +3,7 @@ package com.kotlin_tutorial
 import android.content.ContentValues.TAG
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -28,15 +29,14 @@ class MainActivity : AppCompatActivity(), FoodAdapter.Listener {
         rvStudent.setHasFixedSize(true)
         rvStudent.adapter = adpStudent
         rvStudent.layoutManager = llMgr
-        retrieveFoodList()
-        adpStudent.notifyDataSetChanged()
+        retrieveFoodList(adpStudent)
     }
 
     override fun onClick(iPosition: Int) {
         Log.i("TAG", "checking iPosition = " + iPosition)
     }
 
-    fun retrieveFoodList() {
+    fun retrieveFoodList(adpStudent: FoodAdapter) {
         val db = FirebaseFirestore.getInstance()
         val docRef = db.collection("food_list").document("document_id")
         docRef.get()
@@ -65,6 +65,8 @@ class MainActivity : AppCompatActivity(), FoodAdapter.Listener {
                             )
                         }
                     }
+
+                    adpStudent.notifyDataSetChanged()
                 } else {
                     Log.d(TAG, "No such document")
                 }
@@ -100,4 +102,6 @@ class MainActivity : AppCompatActivity(), FoodAdapter.Listener {
                 Log.w(TAG, "Error writing document", e)
             }
     }
+
+
 }

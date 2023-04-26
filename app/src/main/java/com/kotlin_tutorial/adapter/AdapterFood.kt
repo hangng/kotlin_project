@@ -28,7 +28,7 @@ class FoodAdapter(
     override fun onBindViewHolder(holder: VhItems, position: Int) {
         val food = mFoodItemList[position]
 
-        holder.mCvItem.setCardBackgroundColor(context.resources.getColor(R.color.purple_700))
+        holder.mCvItem.setCardBackgroundColor(context.resources.getColor(R.color.purple_200))
         holder.mTvFoodName.text = food.mFoodName
         holder.mTvFoodDesc.text = food.mFoodDesc
 //        holder.mLlRow.setOnClickListener() {
