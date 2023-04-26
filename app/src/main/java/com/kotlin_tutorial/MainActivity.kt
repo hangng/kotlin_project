@@ -4,80 +4,100 @@ import android.content.ContentValues.TAG
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.google.firebase.firestore.FirebaseFirestore
-import com.kotlin_tutorial.adapter.StudentAdapter
-import com.kotlin_tutorial.model.Student
+import com.kotlin_tutorial.adapter.FoodAdapter
+import com.kotlin_tutorial.model.FoodItem
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 
-class MainActivity : AppCompatActivity(), StudentAdapter.Listener {
+class MainActivity : AppCompatActivity(), FoodAdapter.Listener {
 
     private lateinit var rvStudent: RecyclerView
-    private var mAryList: ArrayList<Student> = arrayListOf()
-
+    private var mFoodLst: ArrayList<FoodItem> = arrayListOf()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
-        mAryList.add(Student("John", 1, "male", "none",false))
-        mAryList.add(Student("Mandy", 2, "Female", "none",false))
-        mAryList.add(Student("George", 3, "male", "none",false))
-        mAryList.add(Student("Joke", 4, "male", "none",false))
-
-
-        rvStudent = findViewById(R.id.rv_student)
-        val llMgr = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL,)
-        val adpStudent = StudentAdapter(this,mAryList, this)
+        rvStudent = findViewById(R.id.rv_food)
+        val llMgr = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        val adpStudent = FoodAdapter(this, mFoodLst, this)
         rvStudent.setHasFixedSize(true)
         rvStudent.adapter = adpStudent
         rvStudent.layoutManager = llMgr
+        retrieveFoodList()
         adpStudent.notifyDataSetChanged()
-        initFirebase()
-
     }
 
     override fun onClick(iPosition: Int) {
         Log.i("TAG", "checking iPosition = " + iPosition)
     }
 
+    fun retrieveFoodList() {
+        val db = FirebaseFirestore.getInstance()
+        val docRef = db.collection("food_list").document("document_id")
+        docRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val foodList = document.get("foods") as? List<Map<String, Any>>
+                    if (foodList != null) {
+                        // Iterate over the list of food items and do something with them
+                        for (food in foodList) {
+                            val category = food["category"] as? Long
+                            val foodName = food["food_name"] as? String
+                            val foodDesc = food["food_desc"] as? String
+                            val foodCode = food["food_code"] as? String
+                            val photo = food["food_photo"] as? String
+                            val favorite = food["food_fav"] as? Boolean
+                            // Do something with the fields of the food item
+                            mFoodLst.add(
+                                FoodItem(
+                                    category!!.toInt(),
+                                    foodName.toString(),
+                                    foodDesc.toString(),
+                                    foodCode.toString(),
+                                    photo.toString(),
+                                    favorite!!
+                                )
+                            )
+                        }
+                    }
+                } else {
+                    Log.d(TAG, "No such document")
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.d(TAG, "get failed with ", exception)
+            }
+        Log.i("TAG", "checking mFoodLst size  = " + mFoodLst.size)
+    }
 
     fun initFirebase() {
         val db = FirebaseFirestore.getInstance()
 
-        // Create a new user with a first and last name
-        // Create a new user with a first and last name
-        val user: MutableMap<String, Any> = HashMap()
-        user["first"] = "Ada"
-        user["last"] = "Lovelace"
-        user["born"] = 1815
+        val foodList: MutableList<Map<String, Any>> = mutableListOf()
+        for (food in mFoodLst) {
+            val foodMap: MutableMap<String, Any> = HashMap()
+            foodMap["category"] = food.mCategory
+            foodMap["food_name"] = food.mFoodName
+            foodMap["food_desc"] = food.mFoodDesc
+            foodMap["food_code"] = food.mFoodCode
+            foodMap["food_photo"] = food.photo
+            foodMap["food_fav"] = food.favorite
+            foodList.add(foodMap)
+        }
 
-// Add a new document with a generated ID
-
-// Add a new document with a generated ID
-        db.collection("kotlin_testing")
-            .add(user)
-            .addOnSuccessListener { documentReference ->
-                Log.d(
-                    TAG,
-                    "DocumentSnapshot added with ID: " + documentReference.id
-                )
+        db.collection("food_list")
+            .document("document_id") // Replace with the ID of the document you want to overwrite, or remove this line to create a new document
+            .set(mapOf("foods" to foodList))
+            .addOnSuccessListener {
+                Log.d(TAG, "DocumentSnapshot successfully written!")
             }
-            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
-
-
-        db.collection("kotlin_testing")
-            .get()
-            .addOnSuccessListener { result ->
-                for (document in result) {
-                    Log.d(TAG, "${document.id} => ${document.data}")
-                }
-            }
-            .addOnFailureListener { exception ->
-                Log.w(TAG, "checking Error getting documents.", exception)
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Error writing document", e)
             }
     }
 }
