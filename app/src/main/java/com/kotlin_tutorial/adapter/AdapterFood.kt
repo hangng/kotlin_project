@@ -53,6 +53,8 @@ class FoodAdapter(
                 holder.mTvDesc.text = food.foodDesc
                 holder.mTvSteps.text = food.foodDesc
                 holder.mLlRow.setOnClickListener {
+
+                    //TODO fix if select last item it will crash
                     mCallback.onClick(holder.adapterPosition)
                 }
             }
