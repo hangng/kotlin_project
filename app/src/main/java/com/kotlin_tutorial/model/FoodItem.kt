@@ -3,7 +3,7 @@ package com.kotlin_tutorial.model
 class FoodItem(
 
     val foodCategoryName: String,
-    val foodCategoryPosition: Int,
+    var foodCategoryPosition: Int,
     val foodName: String,
     val foodDesc: String,
     val photo: String,
@@ -16,4 +16,7 @@ class FoodItem(
 
     }
 
+    override fun toString(): String {
+        return foodCategoryName
+    }
 }

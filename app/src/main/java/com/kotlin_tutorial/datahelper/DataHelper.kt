@@ -1,61 +1,47 @@
 package com.kotlin_tutorial.datahelper
 
+import androidx.lifecycle.ViewModel
 import com.kotlin_tutorial.model.FoodItem
 import java.io.Serializable
 
-class RecipeDataHelper : Serializable {
-    companion object {
-        private const val serialVersionUID: Long = -2009724719778639944L
-    }
-
+class RecipeDataHelper {
 
     var sFoodCatTitle: String = ""
-        get() = field
-        set(value) {
-            field = value
-        }
     var sTitle: String = ""
-        get() = field
-        set(value) {
-            field = value
-        }
-
-
     var sPhotoName: String = ""
-        get() = field
-        set(value) {
-            field = value
-        }
-
     var sSteps: String = ""
-        get() = field
-        set(value) {
-            field = value
-        }
-
-
     var iCatPosition: Int = 0
-        get() = field
-        set(value) {
-            field = value
-        }
-
     var aryCategory: ArrayList<String> = ArrayList()
-        get() = field
-        set(value) {
-            field = value
-        }
-
     var aryFoodCatTitle: ArrayList<String> = ArrayList()
-        get() = field
-        set(value) {
-            field = value
-        }
     var aryFoodLst: ArrayList<FoodItem> = ArrayList()
-        get() = field
-        set(value) {
-            field = value
-        }
+    var bEdit: Boolean = false
+    var sDocumentId: String = ""
 
+
+    constructor()
+
+    constructor(
+        sFoodCatTitle: String,
+        sTitle: String,
+        sPhotoName: String,
+        sSteps: String,
+        iCatPosition: Int,
+        aryCategory: ArrayList<String>,
+        aryFoodCatTitle: ArrayList<String>,
+        aryFoodLst: ArrayList<FoodItem>,
+        bEdit: Boolean,
+        sDocumentId: String
+    ) {
+        this.sFoodCatTitle = sFoodCatTitle
+        this.sTitle = sTitle
+        this.sPhotoName = sPhotoName
+        this.sSteps = sSteps
+        this.iCatPosition = iCatPosition
+        this.aryCategory = aryCategory
+        this.aryFoodCatTitle = aryFoodCatTitle
+        this.aryFoodLst = aryFoodLst
+        this.bEdit = bEdit
+        this.sDocumentId = sDocumentId
+    }
 
 }

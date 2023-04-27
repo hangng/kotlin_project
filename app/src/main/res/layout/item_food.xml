@@ -40,28 +40,20 @@
                 android:text="name" />
 
             <TextView
-                android:id="@+id/tv_ingredients"
+                android:id="@+id/tv_desc"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:gravity="center"
                 android:text="desc" />
 
-            <LinearLayout
-                android:id="@+id/ll_steps"
+            <TextView
+                android:id="@+id/tv_steps"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tv_steps"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center"
-                    android:text="desc" />
-            </LinearLayout>
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:text="steps" />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>

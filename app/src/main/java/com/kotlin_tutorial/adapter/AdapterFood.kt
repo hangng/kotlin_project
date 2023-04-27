@@ -28,11 +28,13 @@ class FoodAdapter(
                     .inflate(R.layout.item_category, parent, false)
                 return VhCategory(v)
             }
+
             FoodItem.food_list -> {
                 v = LayoutInflater.from(parent.context)
                     .inflate(R.layout.item_food, parent, false)
                 return VhItems(v)
             }
+
             else -> {
                 v = LayoutInflater.from(parent.context)
                     .inflate(R.layout.item_category, parent, false)
@@ -46,26 +48,19 @@ class FoodAdapter(
         when (holder) {
             is VhItems -> {
                 val food = mFoodItemList[position]
-//                holder.mCvItem.setCardBackgroundColor(
-//                    ContextCompat.getColor(context, R.color.purple_200)
-//                )
+
                 holder.mTvFoodName.text = food.foodName
+                holder.mTvDesc.text = food.foodDesc
+                holder.mTvSteps.text = food.foodDesc
                 holder.mLlRow.setOnClickListener {
                     mCallback.onClick(holder.adapterPosition)
-//                    if (holder.mTvName.visibility == View.VISIBLE) {
-//                        holder.mTvName.visibility = View.GONE
-//                    } else {
-//                        holder.mTvName.visibility = View.VISIBLE
-//                    }
                 }
             }
+
             is VhCategory -> {
                 val foodCategory = mFoodItemList[position]
                 holder.mTvFoodCat.text = foodCategory.foodCategoryName
-                Log.i(
-                    "TAG",
-                    "checking foodCategory.foodCategoryName size = " + mDataHelper.aryFoodCatTitle.size
-                )
+
                 val adapter = ArrayAdapter(
                     context,
                     android.R.layout.simple_spinner_dropdown_item,
@@ -109,11 +104,10 @@ class FoodAdapter(
 
     inner class VhItems(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val mTvFoodName: TextView = itemView.findViewById(R.id.tv_food_name)
+        val mTvDesc: TextView = itemView.findViewById(R.id.tv_desc)
         val mTvSteps: TextView = itemView.findViewById(R.id.tv_steps)
-        val mTvIngredients: TextView = itemView.findViewById(R.id.tv_ingredients)
-        val mLlSteps: LinearLayout = itemView.findViewById(R.id.ll_steps)
+        val mTvIngredients: TextView = itemView.findViewById(R.id.tv_desc)
         val mLlRow: LinearLayout = itemView.findViewById(R.id.ll_row)
-        val mCvItem: CardView = itemView.findViewById(R.id.cv_items)
     }
 
     interface Listener {
