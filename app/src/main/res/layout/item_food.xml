@@ -40,35 +40,27 @@
                 android:text="name" />
 
             <TextView
-                android:id="@+id/tv_desc"
+                android:id="@+id/tv_ingredients"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:layout_weight="1"
                 android:gravity="center"
                 android:text="desc" />
 
             <LinearLayout
+                android:id="@+id/ll_steps"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
-                android:weightSum="2">
+                android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/tv_favorite"
-                    android:layout_width="0dp"
+                    android:id="@+id/tv_steps"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_marginTop="10dp"
                     android:gravity="center"
-                    android:text="Favorite" />
-
-                <TextView
-                    android:id="@+id/tv_add"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="Add" />
+                    android:text="desc" />
             </LinearLayout>
         </LinearLayout>
 
