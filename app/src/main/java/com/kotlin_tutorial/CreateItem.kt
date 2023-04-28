@@ -1,28 +1,41 @@
 package com.kotlin_tutorial
 
-import android.content.ContentValues
+import android.Manifest
 import android.content.ContentValues.TAG
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.BitmapFactory.decodeFile
+import android.graphics.Matrix
+import android.media.ExifInterface
+import android.net.Uri
 import android.os.Bundle
-import android.os.PersistableBundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.Spinner
+import android.widget.*
 import androidx.annotation.NonNull
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.ktx.storage
 import com.google.gson.Gson
 import com.kotlin_tutorial.datahelper.RecipeDataHelper
-import com.kotlin_tutorial.model.FoodItem
-import java.util.HashMap
+import java.io.File
+import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.*
+
 
 class CreateItem : AppCompatActivity() {
 
@@ -34,71 +47,91 @@ class CreateItem : AppCompatActivity() {
     private lateinit var spCategory: Spinner
     private lateinit var btnSubmit: Button
     private lateinit var dataHelper: RecipeDataHelper
+    private val gson = Gson()
+    private val PICK_IMAGE_REQUEST = 1
+
+    private val REQUEST_IMAGE_CAPTURE = 0
+    private var imgUri: Uri? = null
+    private lateinit var storageRef: StorageReference
+
+
     override fun onSaveInstanceState(@NonNull outState: Bundle) {
-        Log.i("TAG", "checking onSaveInstanceState")
         super.onSaveInstanceState(outState)
-        outState.putBoolean(
-            MainActivity.SHARE_EDIT,
-            isEdit
-        )
+        if (dataHelper != null) {
+            outState.putString(MainActivity.DATA_HELPER, gson.toJson(dataHelper))
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_item)
 
+        if (savedInstanceState != null) {
+            val personJson = savedInstanceState.getString(MainActivity.DATA_HELPER)
+            dataHelper = gson.fromJson(personJson, RecipeDataHelper::class.java)
+        } else {
+            val personJson = intent.getStringExtra(MainActivity.DATA_HELPER)
+            dataHelper = gson.fromJson(personJson, RecipeDataHelper::class.java)
+        }
+
+
         initComponent()
         initData()
 
-
         btnSubmit.setOnClickListener {
-            if (etTitle.length() < 0) {
-                etTitle.setError("Please enter food name")
-                return@setOnClickListener
-            } else {
-                dataHelper!!.sTitle = etTitle.text.toString()
-            }
 
-            if (dataHelper!!.aryFoodCatTitle.size <= 0) {
-                dataHelper!!.iCatPosition = 1
-                dataHelper!!.sFoodCatTitle = etCategory.text.toString()
-            } else {
-                dataHelper!!.iCatPosition = spCategory.selectedItemPosition
-                dataHelper!!.sFoodCatTitle = spCategory.selectedItemPosition.toString()
-            }
-
-
-            dataHelper.sSteps = etSteps.text.toString()
-
+//            if (etTitle.length() < 0) {
+//                etTitle.setError("Please enter food name")
+//                return@setOnClickListener
+//            } else {
+//                dataHelper.sTitle = etTitle.text.toString()
+//            }
+//
+//            if (dataHelper.aryFoodCatTitle.size <= 0) {
+//                dataHelper.iCatPosition = 1
+//                dataHelper.sFoodCatTitle = etCategory.text.toString()
+//            } else {
+//                dataHelper.iCatPosition = spCategory.selectedItemPosition
+//                dataHelper.sFoodCatTitle = spCategory.selectedItemPosition.toString()
+//            }
+//
+//
+//            dataHelper.sSteps = etSteps.text.toString()
+//
             var catTitle = ""
             if (dataHelper.aryFoodCatTitle.size <= 0) {
                 catTitle = etCategory.text.toString()
             } else {
-                catTitle = spCategory.getSelectedItem().toString();
+                catTitle = spCategory.selectedItemPosition.toString();
             }
-
-            if (isEdit) {
-                onUpdate(catTitle)
-            } else {
-                onAdd(catTitle)
-            }
+            uploadImgFirebaseCloudStorage()
+            Log.i("TAG", "checking    uploadImgFirebaseCloudStorage() = "+    uploadImgFirebaseCloudStorage())
+//            if (isEdit) {
+//                onUpdate(dataHelper.sDocumentId, catTitle)
+//            } else {
+//            onAdd(catTitle, uploadImgFirebaseCloudStorage())
+//            }
         }
     }
 
     override fun onResume() {
+
         super.onResume()
     }
 
-    fun onUpdate(catTitle: String) {
+    fun onUpdate(documentId: String, catTitle: String) {
         val db = Firebase.firestore
-        val docRef = db.collection("foodRecipe").document(catTitle)
+        val docRef = db.collection("foodRecipe").document(documentId)
 
+        Log.i(
+            "TAG",
+            "checking catTitle = " + catTitle + " | dataHelper.sSteps = " + dataHelper.sSteps + " | dataHelper.sTitle = " + dataHelper.sTitle
+        )
         val data = hashMapOf(
             "title" to dataHelper.sTitle,
-            "catPosition" to dataHelper.iCatPosition.toString(),
-            "steps" to dataHelper.sSteps,
+            "catPosition" to catTitle,
             "photoName" to dataHelper.sPhotoName,
-            "foodSteps" to dataHelper.sFoodCatTitle,
+            "steps" to dataHelper.sSteps,
         )
 
         docRef.set(data)
@@ -111,7 +144,7 @@ class CreateItem : AppCompatActivity() {
             }
     }
 
-    fun onAdd(catTitle: String) {
+    fun onAdd(catTitle: String, imgUrl: String) {
         val db = FirebaseFirestore.getInstance()
         val documentRef = db.collection("foodRecipe").document()
 
@@ -127,7 +160,8 @@ class CreateItem : AppCompatActivity() {
             "catPosition" to position.toString(),
             "steps" to dataHelper.sSteps,
             "photoName" to dataHelper.sPhotoName,
-            "foodCatTitle" to dataHelper.sFoodCatTitle,
+            "foodCatTitle" to catTitle,
+            "imgUrl" to imgUrl,
         )
 
         documentRef.set(newData)
@@ -150,16 +184,40 @@ class CreateItem : AppCompatActivity() {
         spCategory = findViewById(R.id.sp_category)
         btnSubmit = findViewById(R.id.btn_submit)
 
+        storageRef = FirebaseStorage.getInstance().getReference("Images")
+
     }
 
     fun initData() {
+        if (dataHelper.photoBitmap != null) {
+            val matrix = Matrix()
+            val rotatedBitmap =
+                Bitmap.createBitmap(
+                    dataHelper.photoBitmap!!,
+                    0,
+                    0,
+                    dataHelper.photoBitmap!!.width,
+                    dataHelper.photoBitmap!!.height,
+                    matrix,
+                    true
+                )
+            imgItem.setImageBitmap(rotatedBitmap)
+            imgItem.scaleType = ImageView.ScaleType.CENTER_CROP
+            imgItem.layoutParams.height = 1000
+            imgItem.layoutParams.width = 1000
+        }
 
-        val gson = Gson()
-        val personJson = intent.getStringExtra(MainActivity.DATA_HELPER)
-        dataHelper = gson.fromJson(personJson, RecipeDataHelper::class.java)
         isEdit = dataHelper.bEdit
         etTitle.setText(dataHelper.sTitle)
         etSteps.setText(dataHelper.sSteps)
+        Log.i("TAG", "checking title = " + dataHelper.sTitle)
+
+        Log.i("TAG", "checking documentId = " + dataHelper.sDocumentId)
+        Log.i(
+            "TAG",
+            "checking dataHelper.aryFoodCatTitle.toString() = " + dataHelper.aryFoodCatTitle.toString()
+        )
+        Log.i("TAG", "checking sSteps = " + dataHelper.sSteps)
 
         if (dataHelper.aryFoodCatTitle.size <= 0) {
             spCategory.visibility = View.GONE
@@ -170,6 +228,9 @@ class CreateItem : AppCompatActivity() {
             etCategory.visibility = View.GONE
         }
 
+        imgItem.setOnClickListener() {
+            showDialog()
+        }
 
         val adapter = ArrayAdapter(
             this,
@@ -197,5 +258,109 @@ class CreateItem : AppCompatActivity() {
                 }
             }
     }
+
+    fun pickImage() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "image/*"
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        val matrix = Matrix()
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.data != null) {
+            var filePath: Uri = data.data!!
+            imgItem.setImageURI(filePath)
+            imgItem.scaleType = ImageView.ScaleType.CENTER_CROP
+            imgItem.layoutParams.height = 1000
+            imgItem.layoutParams.width = 1000
+
+            val inputStream = this.contentResolver.openInputStream(filePath)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            dataHelper.photoBitmap = bitmap
+
+            val rotatedBitmap =
+                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            dataHelper.photoBitmap = rotatedBitmap
+            imgItem.setImageURI(filePath)
+            imgItem.scaleType = ImageView.ScaleType.CENTER_CROP
+            imgItem.layoutParams.height = 1000
+            imgItem.layoutParams.width = 1000
+
+        } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            var bmp: Bitmap = decodeFile(dataHelper.photoPath)
+            val exif = ExifInterface(dataHelper.photoPath)
+            val orientation = exif.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )
+            when (orientation) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90F)
+                ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180F)
+                ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270F)
+            }
+            val rotatedBitmap = Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, matrix, true)
+            dataHelper.photoBitmap = rotatedBitmap
+            imgItem.setImageBitmap(rotatedBitmap)
+            imgItem.scaleType = ImageView.ScaleType.CENTER_CROP
+            imgItem.layoutParams.height = 1000
+            imgItem.layoutParams.width = 1000
+        }
+    }
+
+
+    private fun showDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage("Select and Option")
+        builder.setPositiveButton("Camera") { dialog, which ->
+            takePhoto()
+        }
+        builder.setNegativeButton("Gallery") { dialog, which ->
+            pickImage()
+        }
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    private fun takePhoto() {
+        var fileName = "photo"
+        var storageDirec: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+
+        try {
+            var imgFile: File = File.createTempFile(fileName, ".jpg", storageDirec)
+            dataHelper.photoPath = imgFile.absolutePath
+            imgUri = FileProvider.getUriForFile(this, "com.kotlin_tutorial.fileprovider", imgFile)
+            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, imgUri)
+            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
+
+        } catch (e: Exception) {
+
+        }
+    }
+
+    private fun uploadImgFirebaseCloudStorage(): String {
+        var imgUrl: String = ""
+
+        Log.i("TAG", "checking imgUri = " + imgUri)
+
+        imgUri?.let {
+            storageRef.child(dataHelper.sDocumentId)
+                .putFile(imgUri!!) // if success stored img then generate url from Firebase
+                .addOnSuccessListener { task ->
+                    task.metadata!!.reference!!.downloadUrl.addOnSuccessListener { url ->
+                        imgUrl = url.toString()
+
+                        Log.i("TAG", "checking upload success...")
+                    }
+
+                }.addOnFailureListener { fail ->
+                    imgUrl = ""
+                    Log.i("TAG", "checking upload failed...")
+                }
+        }
+        return imgUrl
+    }
+
 
 }

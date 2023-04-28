@@ -20,28 +20,30 @@ class FoodAdapter(
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val v: View
+        val v: View = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_food, parent, false)
+        return VhItems(v)
 
-        when (viewType) {
-            FoodItem.food_category -> {
-                v = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_category, parent, false)
-                return VhCategory(v)
-            }
-
-            FoodItem.food_list -> {
-                v = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_food, parent, false)
-                return VhItems(v)
-            }
-
-            else -> {
-                v = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_category, parent, false)
-                return VhCategory(v)
-            }
-
-        }
+//        when (viewType) {
+//            FoodItem.food_category -> {
+//                v = LayoutInflater.from(parent.context)
+//                    .inflate(R.layout.item_category, parent, false)
+//                return VhCategory(v)
+//            }
+//
+//            FoodItem.food_list -> {
+//                v = LayoutInflater.from(parent.context)
+//                    .inflate(R.layout.item_food, parent, false)
+//                return VhItems(v)
+//            }
+//
+//            else -> {
+//                v = LayoutInflater.from(parent.context)
+//                    .inflate(R.layout.item_category, parent, false)
+//                return VhCategory(v)
+//            }
+//
+//        }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {

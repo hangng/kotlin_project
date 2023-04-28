@@ -1,5 +1,7 @@
 package com.kotlin_tutorial.datahelper
 
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import com.kotlin_tutorial.model.FoodItem
 import java.io.Serializable
@@ -16,7 +18,8 @@ class RecipeDataHelper {
     var aryFoodLst: ArrayList<FoodItem> = ArrayList()
     var bEdit: Boolean = false
     var sDocumentId: String = ""
-
+    var photoBitmap: Bitmap? = null
+    var photoPath: String = ""
 
     constructor()
 

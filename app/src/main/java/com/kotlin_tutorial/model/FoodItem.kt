@@ -7,7 +7,7 @@ class FoodItem(
     val foodName: String,
     val foodDesc: String,
     val photo: String,
-//    val documentPath: String?,
+    val documentId: String,
     val sectionId: Int?,
 ) {
     companion object {

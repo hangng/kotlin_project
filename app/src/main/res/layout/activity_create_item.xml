@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
     app:cardCornerRadius="20dp"
     tools:context=".CreateItem">
 
@@ -50,16 +49,15 @@
                     android:id="@+id/sp_category"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp" />
+                    android:layout_marginBottom="5dp" />
 
                 <EditText
                     android:id="@+id/et_category"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="5dp"
                     android:layout_marginBottom="20dp"
-                    android:hint="Enter Category"
-                    android:visibility="gone" />
+                    android:hint="Enter Category" />
             </LinearLayout>
 
             <EditText
